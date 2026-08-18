@@ -3,7 +3,7 @@
   "displayName": "Freebuff",
   "description": "Bring the free Freebuff CLI coding agent into VS Code. No API key, no account. Optional BYOK models via SecretStorage.",
   "publisher": "freebuff-local",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -122,6 +122,13 @@
           "type": "boolean",
           "default": false,
           "description": "Internal flag. Tracks whether the user has been shown the prompt-advertising notice (see privacy policy)."
+        },
+        "freebuff.chat.maxPromptBytes": {
+          "type": "number",
+          "default": 65536,
+          "minimum": 1024,
+          "maximum": 1048576,
+          "description": "Maximum prompt size in bytes accepted by the chat composer."
         }
       }
     }
@@ -136,6 +143,9 @@
     "test:watch": "vitest",
     "package": "npm run build && node scripts/package.mjs",
     "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.12.0",

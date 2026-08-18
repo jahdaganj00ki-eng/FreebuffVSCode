@@ -4,6 +4,51 @@ All notable changes to this project are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — Phase 4 — 2026-08-18
+
+### Added
+
+- `src/ui/webview/schema.ts` — shared Zod runtime contract for
+  host↔webview messages (`init`, `session-updated`, `error`;
+  `ready`, `send-prompt`, `cancel`, `new-session`, `delete-session`,
+  `rerun`) plus session/message payload schemas.
+- `src/chat/SessionStore.ts` — pure in-memory session store with
+  injectable persistence; caps on sessions/messages/text;
+  title auto-derivation; corrupt-storage recovery.
+- `src/chat/VscodeSessionPersistence.ts` — workspaceState-backed
+  persistence (JSON-safe, redacted messages only).
+- `src/chat/ChatProvider.ts` — vscode-free orchestration: prompt
+  size limits, streaming via `AsyncIterable<ChatEvent>`, cancel,
+  rerun, new/delete session, change notifications.
+- `src/diagnostics/Redactor.ts` — deterministic secret redaction
+  (tokens, headers, PEM blocks) applied to every stored/emitted
+  string.
+- `src/ui/webview/markdown.ts` — dependency-free, HTML-escaped
+  Markdown subset (code fences, inline code, headings, lists,
+  bold/italic).
+- `src/ui/webview/main.ts` + `styles.css` — chat client: streaming
+  cursor, copy buttons, theme classes (light/dark/high-contrast),
+  ARIA labels, Enter-to-send / Shift+Enter-newline, narrow-sidebar
+  responsive layout.
+- `src/ui/ChatWebviewProvider.ts` — host wiring: strict CSP with
+  nonce, local resource roots, schema-validated message routing,
+  theme sync, provider subscriptions.
+- esbuild now emits `dist/webview/main.js` + copies styles.css.
+- `Freebuff: Open Chat` opens the webview (mock streaming behind
+  the Phase-2 adapter).
+- Tests: schema round-trips, session store caps/persistence, chat
+  provider streaming/cancel/rerun/error, redactor patterns, markdown
+  escaping. (Suite grows to ~60 tests.)
+
+### Security
+
+- CSP `default-src 'none'`, nonce-based script/style, no inline
+  handlers, no external resources.
+- Webview messages validated by Zod before dispatch; invalid
+  messages are dropped with a warning.
+- Markdown renderer escapes HTML first; user/tool text rendered
+  verbatim with `textContent`.
+
 ## [0.3.0] — Phase 3 — 2026-08-18
 
 ### Added

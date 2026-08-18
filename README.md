@@ -23,7 +23,7 @@ agent into Visual Studio Code. It is designed to be:
 | 1 | Skeleton: activation, three commands, OutputChannel | ✅ complete |
 | 2 | `FreebuffAdapter` + typed models + mock transport + capability matrix | ✅ complete |
 | 3 | BYOK storage (`AuthService` + `SecretStorage`) | ✅ complete |
-| 4 | Chat Webview with mock streaming | ⏳ planned |
+| 4 | Chat Webview with mock streaming | ✅ complete |
 | 5 | Verified `freebuff` CLI subprocess transport | ⏳ planned |
 | 6 | Context selection + ignore rules | ⏳ planned |
 | 7 | Diff/apply workflow | ⏳ planned |

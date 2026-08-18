@@ -25,6 +25,11 @@ import { AuthService, validateByokKey } from './auth/AuthService';
 import { VscodeSecretStore } from './auth/SecretStore';
 import type { ByokProvider } from './auth/types';
 import { BYOK_PROVIDERS, isByokProvider } from './auth/types';
+import { SessionStore } from './chat/SessionStore';
+import { VscodeSessionPersistence } from './chat/VscodeSessionPersistence';
+import { ChatProvider } from './chat/ChatProvider';
+import { ChatWebviewProvider } from './ui/ChatWebviewProvider';
+import { createRedactor } from './diagnostics/Redactor';
 
 // Active transport for Phase 2: the deterministic mock. Phase 5 swaps
 // this for the verified Freebuff-CLI subprocess transport.
@@ -45,6 +50,17 @@ function getAuth(): AuthService {
     throw new Error('AuthService not initialized — activate() must run first.');
   }
   return authService;
+}
+
+// Chat Webview (Phase 4). Lazily built on first `Freebuff: Open Chat`.
+let chatWebview: ChatWebviewProvider | undefined;
+let extensionContext: vscode.ExtensionContext | undefined;
+
+function getChatWebview(): ChatWebviewProvider {
+  if (!chatWebview) {
+    throw new Error('Chat webview not initialized — activate() must run first.');
+  }
+  return chatWebview;
 }
 
 let outputChannel: vscode.OutputChannel | undefined;
@@ -133,18 +149,24 @@ async function showStatus(): Promise<void> {
 }
 
 async function openChat(): Promise<void> {
-  // Chat Webview sits in Phase 4. For now we publish the status and
-  // give the user a useful place to land. This avoids launching an
-  // empty Webview that pretends to work.
-  await showStatus();
-  void vscode.window.showInformationMessage(
-    'Freebuff chat opens in a dedicated Webview in Phase 4. For now, run `npm install -g freebuff` and use Freebuff CLI directly.',
-    'Copy install command',
-  ).then(async (choice) => {
-    if (choice === 'Copy install command') {
-      await vscode.env.clipboard.writeText(CLI_RECOMMENDED_INSTALL);
+  if (!chatWebview) {
+    if (!extensionContext) {
+      await showStatus();
+      return;
     }
-  });
+    const maxPromptBytes =
+      vscode.workspace.getConfiguration('freebuff').get<number>('chat.maxPromptBytes') ?? 65_536;
+    const store = new SessionStore(new VscodeSessionPersistence(extensionContext.workspaceState));
+    await store.init();
+    const chatProvider = new ChatProvider({
+      store,
+      adapter: getAdapter(),
+      redact: createRedactor(),
+      maxPromptBytes,
+    });
+    chatWebview = new ChatWebviewProvider(extensionContext.extensionUri, getAdapter(), chatProvider, getAuth());
+  }
+  getChatWebview().open();
 }
 
 async function manageByok(): Promise<void> {
@@ -234,6 +256,7 @@ async function installCli(): Promise<void> {
 
 export function activate(context: vscode.ExtensionContext): void {
   announceActivation(context);
+  extensionContext = context;
 
   // Phase 3: optional BYOK lifecycle. Default anonymous.
   const byokEnabled = vscode.workspace.getConfiguration('freebuff').get<boolean>('allowBringYourOwnKey') ?? false;
@@ -287,4 +310,5 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   outputChannel?.dispose();
   outputChannel = undefined;
+  chatWebview = undefined;
 }
