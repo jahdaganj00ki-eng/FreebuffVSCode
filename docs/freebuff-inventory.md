@@ -60,14 +60,21 @@ Aus dem Launch-Post direkt zitiert:
 
 | Modell | Status | Verwendung | Verifiziert |
 | --- | --- | --- | --- |
-| `deepseek-v4` | free, default intelligence | general code reasoning | VERIFIED |
+| `deepseek-v4` (Wire-ID `deepseek/deepseek-v4-pro`) | free, default intelligence | general code reasoning | VERIFIED |
 | `MiMo-2.5-Pro` | free | balanced code + reasoning | VERIFIED |
 | `GLM-5.2` | free | coding precision | VERIFIED |
-| `Minimax-M3` | free | speed | VERIFIED |
+| `Minimax-M3` (Wire-ID `minimax/minimax-m3`) | free | speed | VERIFIED |
 | `BYOK claude-code` | bring-your-own-key | optional, paid | VERIFIED (BYOK) |
 | `gemini-3.1-flash-lite` | free | file-picker (subagent) | VERIFIED |
-| `deepseek-v4-flash` | limited mode (6 sessions/day) | fallback / outside top-25 countries | VERIFIED (Doku) |
+| `deepseek-v4-flash` (Wire-ID `deepseek/deepseek-v4-flash`) | limited mode (6 sessions/day) | fallback / outside top-25 countries | VERIFIED (Doku) |
 | `GPT-5.4` | bring-your-own (ChatGPT subscription) | deep thinking (BYOK) | VERIFIED (BYOK) |
+
+**VERIFIED Wire-Modell-IDs** (aus `common/src/constants/freebuff-model-ids.ts`, 2026-08-18):
+`deepseek/deepseek-v4-flash`, `deepseek/deepseek-v4-pro`, `minimax/minimax-m3`
+— Kommentar im Quellcode: „Matches the model id passed to the
+chat-completions endpoint“. Diese IDs gehören zum **Free-Tier-Wire-Protokoll
+der CLI** (Endpunkt nicht öffentlich dokumentiert); sie sind NICHT
+als SDK-`run()`-Option nutzbar (Modell wählt der Agent).
 
 Der Erweiterungs-Default wählt **`deepseek-v4`** als Hauptmodell für
 den Free-Tier. Ein Wechsel ist über die Konfiguration
@@ -273,7 +280,35 @@ Auszug aus der Privacy Policy:
    bis zur Bestätigung in einer offiziellen Quelle nicht in der UI
    anzeigen.
 
-## 11. Status-Legende
+## 11. Antwort: Gleiche Endpunkte wie die Freebuff-CLI?
+
+**Nein.** Zwei getrennte, verifizierte Pfade:
+
+| Pfad | Auth | Backend | Agent-API | Status in der Erweiterung |
+| --- | --- | --- | --- | --- |
+| Freebuff CLI (TUI-Binary) | Free-Tier, anonym (eigene Credentials, `~/.config/manicode/`) | Freebuff-Backend, Modell-Queue je Modell | Wire-Protokoll **nicht öffentlich dokumentiert** | `Freebuff: Open CLI in Terminal` (interaktiv); headless **BLOCKED** |
+| `@codebuff/sdk` (Chat der Erweiterung) | `Authorization: Bearer <CODEBUFF_API_KEY>` | Codebuff-Backend (key-gated) | `PrintModeEvent`/`run()` **dokumentiert** | `FreebuffClient` (Phase 6) |
+
+**Kostenlose Modelle nutzen** — heute belegt:
+
+1. **Anonym & kostenlos, sofort**: Freebuff-CLI im integrierten
+   Terminal (Free-Tier-Modelle DeepSeek V4 Pro/Flash, MiniMax M3,
+   MiMo; GLM über verdiente Sessions; Limited Mode in manchen
+   Ländern). Modellauswahl übernimmt die CLI selbst.
+2. **Im Chat-Webview (SDK)**: benötigt `CODEBUFF_API_KEY` (BYOK).
+   Das Modell wählt der Agent (`codebuff/base@latest`); der Picker
+   in der Webview ist informativ.
+3. **Nicht implementierbar (belegt UNVERIFIED/BLOCKED)**:
+   - Free-Tier headless über die CLI treiben (kein dokumentiertes
+     Protokoll, TUI-Scraping verboten).
+   - Anonymer SDK-Flow: `x-freebuff-acting-user-id`
+     (`FREEBUFF_ACTING_USER_HEADER`) ist ein Server-Header,
+     `setFreeModeCapacityDeferralListener` behandelt 429-
+     Deferrals — beides ist KEINE dokumentierte Auth-Methode.
+   - `base_free`-Agenten existieren in der SDK-Template-Liste,
+     aber das Agent-Store-Format dafür ist nicht dokumentiert.
+
+## 12. Status-Legende
 
 | Token | Bedeutung |
 | --- | --- |
