@@ -21,7 +21,7 @@ agent into Visual Studio Code. It is designed to be:
 | --- | --- | --- |
 | 0 | Source verification, inventory, threat model | ✅ complete |
 | 1 | Skeleton: activation, three commands, OutputChannel | ✅ complete |
-| 2 | `FreebuffAdapter` + `FreebuffClient` + capability matrix | ⏳ planned |
+| 2 | `FreebuffAdapter` + typed models + mock transport + capability matrix | ✅ complete |
 | 3 | BYOK storage (`AuthService` + `SecretStorage`) | ⏳ planned |
 | 4 | Chat Webview with mock streaming | ⏳ planned |
 | 5 | Verified `freebuff` CLI subprocess transport | ⏳ planned |
@@ -46,7 +46,7 @@ agent into Visual Studio Code. It is designed to be:
   If the CLI is not detected, the extension shows a clear empty
   state rather than failing silently.
 
-## What is implemented (Phase 1 only)
+## What is implemented (Phase 2)
 
 - Activation on start, **without** sign-in.
 - An OutputChannel named `Freebuff` for activation status and
@@ -58,6 +58,10 @@ agent into Visual Studio Code. It is designed to be:
 - A configuration namespace (`freebuff.*`) for the model, BYOK gate
   and timeouts. Defaults are documented in the inventory.
 - First-class empty-state when the CLI is missing.
+- A stable internal adapter contract (`FreebuffAdapter`) decoupled
+  from any SDK/CLI implementation, with a deterministic
+  `MockTransport` behind it and a veracity-tagged capability matrix
+  surfaced by `Freebuff: Show Status`.
 
 ## What is *not* implemented (and why)
 

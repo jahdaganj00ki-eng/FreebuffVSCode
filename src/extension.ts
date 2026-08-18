@@ -1,21 +1,37 @@
-// Phase 1 entry point for FreebuffVSIX.
+// Phase 2 entry point for FreebuffVSIX.
 //
-// Goals for this phase:
+// Goals:
 // 1. Activate without requiring any login or API key.
-// 2. Always provide a deterministic empty-state ("Freebuff CLI not
+// 2. Provide a deterministic empty-state ("Freebuff CLI not
 //    installed" / "Freebuff CLI installed") via an OutputChannel
 //    and three slim commands.
-// 3. Hold NO secrets and make NO network calls. Verified
-//    Freebuff-CLI integration is deferred to Phase 5.
+// 3. Run the FreebuffAdapter contract against the deterministic
+//    MockTransport; real Freebuff-CLI integration is deferred to
+//    Phase 5.
+// 4. Hold NO secrets and make NO network calls.
 
 import * as vscode from 'vscode';
 import {
   EXTENSION_NAME,
   EXTENSION_PUBLISHER,
+  EXTENSION_VERSION,
   CLI_RECOMMENDED_INSTALL,
 } from './version';
 import { discoverCli, candidatePaths } from './freebuff/CliDiscovery';
 import { RELEASE_NOTES } from './diagnostics/ReleaseNotes';
+import { MockTransport } from './freebuff/MockTransport';
+import type { FreebuffAdapter } from './freebuff/FreebuffAdapter';
+
+// Active transport for Phase 2: the deterministic mock. Phase 5 swaps
+// this for the verified Freebuff-CLI subprocess transport.
+let adapter: FreebuffAdapter | undefined;
+
+function getAdapter(): FreebuffAdapter {
+  if (!adapter) {
+    adapter = new MockTransport();
+  }
+  return adapter;
+}
 
 let outputChannel: vscode.OutputChannel | undefined;
 
@@ -55,7 +71,8 @@ function buildStatusReport(): string {
   const lines: string[] = [];
   lines.push('FreebuffVSIX status');
   lines.push('--------------------');
-  lines.push(`Extension : ${EXTENSION_NAME} v0.1.0`);
+  lines.push(`Extension : ${EXTENSION_NAME} v${EXTENSION_VERSION}`);
+  lines.push(`Transport : ${getAdapter().id} (mock until Phase 5)`);
   if (result.found && result.path) {
     lines.push(`CLI found : yes (${result.path})`);
     lines.push('Run "Freebuff: Open Chat" to start.');
@@ -64,6 +81,17 @@ function buildStatusReport(): string {
     lines.push(`Install  : ${CLI_RECOMMENDED_INSTALL}`);
     lines.push('Detection is passive (PATH-only) in Phase 1; an explicit --version probe is queued for Phase 5.');
   }
+
+  // Capability matrix (veracity-tagged).
+  const report = getAdapter().capabilities();
+  lines.push('');
+  lines.push('Capability matrix (from docs/freebuff-inventory.md):');
+  lines.push('---------------------------------------------------');
+  for (const cap of report.capabilities) {
+    lines.push(`  [${cap.status.padEnd(12)}] ${cap.id} — ${cap.note}`);
+  }
+  lines.push(`  Free models: ${report.verifiedModels.join(', ')}`);
+  lines.push(`  Verified subagents: ${report.verifiedSubagents.join(', ')}`);
   return lines.join('\n');
 }
 
