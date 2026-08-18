@@ -1,0 +1,145 @@
+{
+  "name": "freebuff",
+  "displayName": "Freebuff",
+  "description": "Bring the free Freebuff CLI coding agent into VS Code. No API key, no account. Optional BYOK models via SecretStorage.",
+  "publisher": "freebuff-local",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jahdaganj00ki-eng/FreebuffVSCode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jahdaganj00ki-eng/FreebuffVSCode/issues"
+  },
+  "homepage": "https://github.com/jahdaganj00ki-eng/FreebuffVSCode#readme",
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "freebuff",
+    "codebuff",
+    "ai",
+    "chat",
+    "coding-agent",
+    "free"
+  ],
+  "categories": [
+    "Chat",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/extension.js",
+    "dist/webview/**",
+    "resources/icons/*.svg",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "freebuff.command.openChat",
+        "title": "Freebuff: Open Chat",
+        "category": "Freebuff",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "freebuff.command.status",
+        "title": "Freebuff: Show Status",
+        "category": "Freebuff",
+        "icon": "$(info)"
+      },
+      {
+        "command": "freebuff.command.installCli",
+        "title": "Freebuff: Install Freebuff CLI (npm)",
+        "category": "Freebuff",
+        "icon": "$(cloud-download)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "freebuff.container",
+          "title": "Freebuff",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "views": [
+      {
+        "id": "freebuff.view.welcome",
+        "name": "Freebuff",
+        "container": "freebuff.container"
+      }
+    ],
+    "configuration": {
+      "title": "Freebuff",
+      "properties": {
+        "freebuff.model": {
+          "type": "string",
+          "enum": [
+            "deepseek-v4",
+            "MiMo-2.5-Pro",
+            "GLM-5.2",
+            "Minimax-M3",
+            "deepseek-v4-flash"
+          ],
+          "default": "deepseek-v4",
+          "description": "Default free-tier model used for chat completion. BYOK models are configured separately."
+        },
+        "freebuff.allowBringYourOwnKey": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow BYOK for paid models (Claude Code, ChatGPT). Keys are stored in VS Code SecretStorage."
+        },
+        "freebuff.terminal.timeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 5000,
+          "maximum": 600000,
+          "description": "Maximum runtime, in milliseconds, for any single CLI invocation spawned by Freebuff."
+        },
+        "freebuff.workspace.trustRequired": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, edit-producing tools require a trusted VS Code workspace."
+        },
+        "freebuff.telemetry.promptAnalyzerNoticeShown": {
+          "type": "boolean",
+          "default": false,
+          "description": "Internal flag. Tracks whether the user has been shown the prompt-advertising notice (see privacy policy)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{ts,json,md}\" \"docs/**/*.md\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "npm run build && node scripts/package.mjs",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "esbuild": "^0.21.5",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
+  }
+}

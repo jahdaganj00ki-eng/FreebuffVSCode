@@ -1,0 +1,25 @@
+# Build output
+dist/
+out/
+.vscode-test/
+
+# Dependencies
+node_modules/
+
+# VS Code IDE
+.vscode/
+
+# Logs, caches, scratch
+*.log
+*.tmp
+.tmp/
+tmp/
+
+# Local env files (we never commit secrets)
+.env
+.env.*
+!.env.example
+
+# OS noise
+.DS_Store
+Thumbs.db

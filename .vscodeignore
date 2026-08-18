@@ -1,0 +1,29 @@
+# VS Code packaging ignore — keeps the VSIX small and free of dev artifacts.
+**/.vscode-test/**
+**/.vscode/**
+**/.github/**
+**/.git/**
+**/.gitignore
+.eslintrc*
+.prettierrc*
+.vscodeignore
+
+# Source maps are kept inside dist/ when present, but full TS source is not shipped.
+src/**
+tests/**
+docs/**
+
+# Build config is dev-only.
+esbuild.config.mjs
+tsconfig*.json
+vitest.config.*
+
+# Lockfile + node modules — never inside the VSIX.
+node_modules/**
+package-lock.json
+
+# Local scripts and tooling that should never leak into a published artifact.
+scripts/dev/**
+*.log
+.tmp/**
+tmp/**

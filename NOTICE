@@ -1,0 +1,31 @@
+NOTICE — FreebuffVSIX
+
+This VS Code extension is an independent project maintained under the MIT
+license. It is **not** affiliated with, endorsed by, or sponsored by
+Codebuff Inc. or Freebuff Inc. except as required to interoperate with
+their publicly documented interfaces. All trademarks belong to their
+respective owners.
+
+Third-party components and services referenced by this extension:
+
+- Freebuff CLI (`freebuff`, MIT). Source:
+    - Public repository: <https://github.com/CodebuffAI/freebuff>
+    - Announcements and pricing: <https://freebuff.com/blog/freebuff-launch>
+    - Privacy policy: <https://freebuff.com/privacy-policy>
+- `@codebuff/sdk` (Apache-2.0). Source:
+    - npm: <https://www.npmjs.com/package/@codebuff/sdk>
+    - Repository: <https://github.com/CodebuffAI/codebuff>
+    - Documentation: <https://www.codebuff.com/docs/advanced/sdk>
+- Visual Studio Code Extension API (Microsoft). Upstream docs at:
+    - <https://code.visualstudio.com/api>
+
+Icons included in this extension are **generic SVG glyphs** generated
+from the VS Code built-in icon set; no proprietary brand assets have been
+imported into this project. If a Google Drive icon folder is provided to
+the maintainers under a verifiable license, those assets will be added
+under an explicit `LICENSE-assets.md` file.
+
+The Freebuff Desktop binary (`Freebuff-0.0.64-win-x64[-baseline].exe`
+and `Freebuff-0.0.64-linux-x86_64.AppImage`) is **not** bundled in this
+extension. The URLs are referenced only for metadata and integrity
+verification, in line with the master prompt's hard security rules.
