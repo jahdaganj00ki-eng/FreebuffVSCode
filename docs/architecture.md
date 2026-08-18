@@ -105,9 +105,15 @@ Daher:
 - **Binary-Policy**: Die Erweiterung lädt nie selbst Binaries herunter
   und führt keine aus; der Launcher des npm-Pakets macht das bei der
   Erstausführung durch den Nutzer (`~/.config/manicode/`).
-- **Secondary: `FreebuffClient.ts`** (SDK). Wird nur instanziiert,
-  wenn der Nutzer in der UI Pro/BYOK aktiviert und ein Secret
-  gespeichert wurde. Der MVP-Ship-Zustand ist **ohne** diesen Pfad.
+- **Primary (Chat): `FreebuffClient.ts`** (SDK, `@codebuff/sdk@0.10.7`).
+  Wird aktiv, sobald ein `CODEBUFF_API_KEY` über BYOK (SecretStorage)
+  konfiguriert ist; sonst fällt der Chat auf den Mock zurück. Deckt
+  Streaming (`handleStreamChunk`), Events (`PrintModeEvent`),
+  Cancellation (`signal: AbortSignal`) und Resume (`previousRun`)
+  ab — alle VERIFIED (Quellcode 0.10.7).
+- **CLI**: `ProcessTransport.ts` bleibt für die verifizierten
+  `--version`/`--help`-Probes und den interaktiven
+  Terminal-Launch; Agent-Streaming über die CLI bleibt BLOCKED.
 
 ## 3a. SDK-Pinning & Kompatibilitätsschicht (optional)
 

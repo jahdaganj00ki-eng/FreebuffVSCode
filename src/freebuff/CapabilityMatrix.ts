@@ -25,6 +25,19 @@ export const VERIFIED_SUBAGENTS: ReadonlyArray<string> = [
   'thinker-with-files-gemini',
 ];
 
+// SDK agent IDs from the Codebuff docs (codebuff.com/docs/agents/overview,
+// 2026-08-18). Used by the SDK transport's agent picker.
+export const SDK_AGENT_IDS: ReadonlyArray<string> = [
+  'codebuff/base',
+  'codebuff/editor',
+  'codebuff/reviewer',
+  'codebuff/thinker',
+  'codebuff/researcher',
+  'codebuff/file-picker',
+  'codebuff/basher',
+  'codebuff/code-searcher',
+];
+
 const CAPABILITIES: ReadonlyArray<Capability> = [
   {
     id: 'mock-transport',
@@ -58,23 +71,43 @@ const CAPABILITIES: ReadonlyArray<Capability> = [
   },
   {
     id: 'sdk-transport',
-    status: 'UNVERIFIED',
-    note: '@codebuff/sdk requires a user-supplied API key; gated behind freebuff.allowBringYourOwnKey.',
+    status: 'VERIFIED',
+    note: '@codebuff/sdk@0.10.7 installed; requires CODEBUFF_API_KEY (auth-gated, via SecretStorage).',
+  },
+  {
+    id: 'sdk-events',
+    status: 'VERIFIED',
+    note: 'PrintModeEvent schema confirmed from public source (start/text/tool_call/tool_result/error/finish/subagent_*/reasoning_delta/download).',
+  },
+  {
+    id: 'sdk-streaming',
+    status: 'VERIFIED',
+    note: 'handleStreamChunk (token/subagent chunks) exists in RunOptions (public source).',
+  },
+  {
+    id: 'sdk-cancellation',
+    status: 'VERIFIED',
+    note: 'RunOptions.signal?: AbortSignal confirmed in public source; aborts the run.',
+  },
+  {
+    id: 'sdk-resume',
+    status: 'VERIFIED',
+    note: 'previousRun?: RunState confirmed; RunState = { sessionState?, output, traceSessionId }.',
   },
   {
     id: 'streaming',
     status: 'VERIFIED',
-    note: 'Event streaming via AsyncIterable<ChatEvent> is implemented in the mock transport.',
+    note: 'Event streaming via AsyncIterable<ChatEvent> is implemented in mock and SDK transports.',
   },
   {
     id: 'cancellation',
     status: 'VERIFIED',
-    note: 'AbortSignal-based cancellation in the mock; real CLI cancellation is UNVERIFIED.',
+    note: 'AbortSignal-based cancellation in mock and SDK transports.',
   },
   {
     id: 'resume',
-    status: 'NOT_APPLICABLE',
-    note: 'Mock accepts previous session state but does not branch on it. SDK RunState resume is UNVERIFIED.',
+    status: 'VERIFIED',
+    note: 'SDK resume via previousRun (RunState); mock accepts state without branching.',
   },
   {
     id: 'tool-allowlist',
@@ -103,13 +136,32 @@ const CAPABILITIES: ReadonlyArray<Capability> = [
   },
 ];
 
-export function buildCapabilityReport(): CapabilityReport {
+export function buildCapabilityReport(transportId = 'mock'): CapabilityReport {
   return {
     version: 1,
     generatedAt: new Date().toISOString(),
+    transportId,
     capabilities: CAPABILITIES,
     verifiedModels: [...VERIFIED_MODELS],
     verifiedSubagents: [...VERIFIED_SUBAGENTS],
+  };
+}
+
+/**
+ * Capability report for the SDK transport: same base matrix, but the
+ * agent picker lists the documented SDK agents and the sdk-transport
+ * entry carries an auth-gated note.
+ */
+export function buildSdkCapabilityReport(): CapabilityReport {
+  const base = buildCapabilityReport('sdk');
+  return {
+    ...base,
+    capabilities: base.capabilities.map((cap) =>
+      cap.id === 'sdk-transport'
+        ? { ...cap, note: '@codebuff/sdk@0.10.7 active. Requires CODEBUFF_API_KEY (SecretStorage).' }
+        : cap,
+    ),
+    verifiedSubagents: [...SDK_AGENT_IDS],
   };
 }
 

@@ -8,7 +8,7 @@
 //   schema before dispatch; unknown kinds are dropped.
 
 import * as vscode from 'vscode';
-import type { FreebuffAdapter } from '../freebuff/FreebuffAdapter';
+import type { CapabilityReport } from '../freebuff/types';
 import type { AuthService } from '../auth/AuthService';
 import type { ChatProvider } from '../chat/ChatProvider';
 import type { InitPayload } from './webview/schema';
@@ -45,7 +45,8 @@ export class ChatWebviewProvider {
 
   constructor(
     private readonly extensionUri: vscode.Uri,
-    private readonly adapter: FreebuffAdapter,
+    /** Resolves the capability report for the CURRENT transport (mock or SDK). */
+    private readonly capabilityReport: () => CapabilityReport,
     private readonly chat: ChatProvider,
     private readonly auth: AuthService,
   ) {}
@@ -146,13 +147,13 @@ export class ChatWebviewProvider {
       return;
     }
     const { sessions, activeSessionId } = this.chat.state();
-    const capabilities = this.adapter.capabilities();
+    const capabilities = this.capabilityReport();
     const auth = await this.auth.status();
     const payload: InitPayload = {
       sessions: [...sessions],
       activeSessionId,
       capabilities: {
-        transportId: this.adapter.id,
+        transportId: capabilities.transportId,
         verifiedModels: [...capabilities.verifiedModels],
         verifiedSubagents: [...capabilities.verifiedSubagents],
       },

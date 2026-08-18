@@ -183,7 +183,7 @@ export class MockTransport implements FreebuffAdapter {
   }
 
   capabilities(): CapabilityReport {
-    return buildCapabilityReport();
+    return buildCapabilityReport('mock');
   }
 
   async startTask(input: StartTaskInput, ctx: AdapterContext): Promise<TaskHandle> {

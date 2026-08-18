@@ -3,7 +3,7 @@
   "displayName": "Freebuff",
   "description": "Bring the free Freebuff CLI coding agent into VS Code. No API key, no account. Optional BYOK models via SecretStorage.",
   "publisher": "freebuff-local",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -157,6 +157,7 @@
     "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
+    "@codebuff/sdk": "^0.10.7",
     "zod": "^3.23.8"
   },
   "devDependencies": {

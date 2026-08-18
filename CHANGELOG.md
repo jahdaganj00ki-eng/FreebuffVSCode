@@ -4,6 +4,46 @@ All notable changes to this project are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — Phase 6: SDK als Chat-Grundlage — 2026-08-18
+
+### Pivot per Nutzeranweisung
+
+- „Verwende Freebuff SDK als Grundlage“ → das offizielle SDK ist
+  `@codebuff/sdk@0.10.7` (kein separates Freebuff-SDK-Paket,
+  verifiziert).
+
+### Verifiziert aus öffentlichem Quellcode (Upgrades von UNVERIFIED)
+
+- `PrintModeEvent`-Schema (start/text/tool_call/tool_result/error/
+  finish/subagent_*/reasoning_delta/download).
+- Cancellation: `RunOptions.signal?: AbortSignal`.
+- Streaming: `handleStreamChunk`.
+- Resume: `previousRun?: RunState`; `RunState = { sessionState?,
+  output }`.
+- Auth: `apiKey`/`CODEBUFF_API_KEY`; keine anonymer SDK-Pfad
+  dokumentiert; Free-Agents (`base_free`) im Template verankert.
+
+### Implementiert
+
+- `src/freebuff/FreebuffClient.ts` — SDK-Transport
+  (`FreebuffAdapter`): Event-Mapping, Streaming, Cancellation via
+  AbortSignal, Resume (loose Runtime-Guard), Redaction,
+  auth-gated (`AdapterError('auth')` ohne Key).
+- Capability-Matrix: `sdk-transport`/`sdk-events`/`sdk-streaming`/
+  `sdk-cancellation`/`sdk-resume` → VERIFIED; `transportId` im
+  CapabilityReport.
+- Transport-Auswahl: SDK bei konfiguriertem `CODEBUFF_API_KEY`
+  (BYOK), sonst Mock; `ChatProvider` nutzt einen `adapterProvider`.
+- Webview zeigt beim SDK-Transport die dokumentierten SDK-Agenten
+  (`codebuff/base`, …) statt CLI-Subagents.
+- Tests: `tests/unit/phase6.test.ts` (10 Tests, gemocktes SDK,
+  type-only Imports). Suite: **81 Tests**.
+
+### Packaging-Hinweise (Phase 10)
+
+- WASM-Assets müssen in die VSIX (tree-sitter/QuickJS); guarded
+  `require("esprima")` (json5/confbox) fällt sicher zurück.
+
 ## [0.5.0] — Phase 5 — 2026-08-18
 
 ### Verified (dry-run, 2026-08-18)

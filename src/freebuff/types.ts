@@ -18,6 +18,8 @@ export interface Capability {
 export interface CapabilityReport {
   readonly version: number;
   readonly generatedAt: string;
+  /** Active transport: `mock`, `sdk`, or `cli`. */
+  readonly transportId: string;
   readonly capabilities: ReadonlyArray<Capability>;
   readonly verifiedModels: ReadonlyArray<string>;
   readonly verifiedSubagents: ReadonlyArray<string>;

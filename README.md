@@ -25,7 +25,7 @@ agent into Visual Studio Code. It is designed to be:
 | 3 | BYOK storage (`AuthService` + `SecretStorage`) | ✅ complete |
 | 4 | Chat Webview with mock streaming | ✅ complete |
 | 5 | Verified `freebuff` CLI surface (`--version`/`--help` probes; agent streaming documented **BLOCKED** — TUI-only) | ✅ complete |
-| 6 | Context selection + ignore rules | ⏳ planned |
+| 6 | **SDK transport as the chat foundation** (`@codebuff/sdk`, auth-gated; context/ignore rules next) | ✅ SDK basis |
 | 7 | Diff/apply workflow | ⏳ planned |
 | 8 | Tool allowlist + terminal approval | ⏳ planned |
 | 9 | Tests, security docs, CI hardening | ⏳ planned |

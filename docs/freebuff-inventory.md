@@ -156,12 +156,13 @@ primär**.
 - Argumente immer als `string[]`, nie Shell-Strings; stdout/stderr
   redacted; Timeout + Kill auf jeder Probe.
 
-## 6. `@codebuff/sdk` (optionaler Pro-Pfad)
+## 6. `@codebuff/sdk` (Integrations-Grundlage, Phase 6)
 
-SDK-Integration bleibt als **optionaler Pfad** erhalten. Der MVP
-verwendet die Freebuff-CLI; eine SDK-Anbindung setzt zwingend einen
-vom Nutzer bereitgestellten `CODEBUFF_API_KEY` voraus und wird im
-UI sichtbar als „Pro" markiert. Folgende Werte sind **VERIFIED**:
+Der Nutzer hat **„Verwende Freebuff SDK als Grundlage"** angeordnet.
+Das offizielle SDK ist `@codebuff/sdk` — es gibt kein separates
+Freebuff-SDK-Paket (verifiziert: npm-Registry). Die SDK-Integration
+ist damit die **primäre Chat-Transportebene** (key-gated); die
+Freebuff-CLI bleibt als interaktiver Terminal-Pfad erhalten. Folgende Werte sind **VERIFIED**:
 
 - Paket `@codebuff/sdk`, Version `0.10.7` (Apache-2.0).
 - Engine `node >= 18`.
@@ -183,9 +184,36 @@ UI sichtbar als „Pro" markiert. Folgende Werte sind **VERIFIED**:
   `@vscode/tree-sitter-wasm`,
   `@jitl/quickjs-wasmfile-release-sync`.
 
-**UNVERIFIED innerhalb SDK**: exaktes Event-Schema,
-Cancellation-API, vollständiges `RunState`-Schema,
-`@codebuff/sdk` und Freebuff-Anonymous-Pfad-Kompatibilität.
+**VERIFIED-Upgrades (Quellcode + installierte Typen 0.10.7)**:
+
+- Event-Schema `PrintModeEvent` (Discriminated Union): `start`,
+  `text`, `tool_call`, `tool_result`, `error`, `finish`,
+  `subagent_start`, `subagent_finish`, `reasoning_delta`,
+  `download` — Shapes bestätigt.
+- Cancellation: `RunOptions.signal?: AbortSignal` — bestätigt.
+- Streaming: `handleStreamChunk` (string- + subagent/reasoning
+  chunks) — bestätigt.
+- Resume: `previousRun?: RunState`; `RunState = { sessionState?,
+  output }` (0.10.7, ohne `traceSessionId`).
+- Auth: `apiKey`-Konstruktor oder `CODEBUFF_API_KEY`-Env; kein
+  dokumentierter anonymer SDK-Pfad.
+- Free-Agents: Template-Liste enthält `base_free` (Free-Modus im
+  SDK verankert); Agent-Auswahl via dokumentierter `agent`-Option
+  (`codebuff/base@latest` Default).
+- BYOK: `CODEBUFF_BYOK_OPENROUTER` dokumentiert.
+
+**Packaging-Hinweise (Phase 10 offen)**:
+
+- WASM-Assets (`tree-sitter.wasm`, QuickJS-WASM) müssen in die VSIX
+  kopiert und per `CODEBUFF_WASM_DIR`/`setTreeSitterWasmPath`
+  verdrahtet werden (im Bundle referenziert, nicht eingebettet).
+- Bundle enthält einen guarded `require("esprima")` (json5 via
+  `confbox`); esprima ist nicht Teil der VSIX — der Try/Catch-Guard
+  fällt auf json5s eigenen Parser zurück (sicher).
+
+**UNVERIFIED**: exakter Free-Tier-Auth-Flow über die SDK-API (nur
+Key-Pfad dokumentiert); E2E-Verifikation ohne Nutzer-Key nicht
+möglich (Tests mocken das SDK).
 
 ## 7. Plattform- und Versionsgrenzen
 

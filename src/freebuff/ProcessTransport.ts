@@ -136,7 +136,7 @@ export class ProcessTransport implements FreebuffAdapter {
   }
 
   capabilities(): CapabilityReport {
-    return buildCapabilityReport();
+    return buildCapabilityReport('cli');
   }
 
   /**

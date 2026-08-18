@@ -157,7 +157,7 @@ describe('ChatProvider', () => {
     store = new SessionStore(new MemorySessionPersistence());
     provider = new ChatProvider({
       store,
-      adapter: new MockTransport(),
+      adapterProvider: () => new MockTransport(),
       redact: createRedactor(),
     });
   });
@@ -182,7 +182,7 @@ describe('ChatProvider', () => {
     await expect(provider.sendPrompt('   ')).rejects.toThrow();
     const tiny = new ChatProvider({
       store,
-      adapter: new MockTransport(),
+      adapterProvider: () => new MockTransport(),
       redact: createRedactor(),
       maxPromptBytes: 32,
     });
@@ -192,7 +192,7 @@ describe('ChatProvider', () => {
   it('marks the session cancelled when the user cancels mid-stream', async () => {
     await store.init();
     const transport = new MockTransport({ delayMs: 30 });
-    provider = new ChatProvider({ store, adapter: transport, redact: createRedactor() });
+    provider = new ChatProvider({ store, adapterProvider: () => transport, redact: createRedactor() });
     const run = provider.sendPrompt('Long task');
     await new Promise((resolve) => setTimeout(resolve, 5));
     await provider.cancel();
@@ -220,9 +220,16 @@ describe('ChatProvider', () => {
       },
       cancel: async () => {},
       status: async () => 'failed' as const,
-      capabilities: () => ({ version: 1, generatedAt: '', capabilities: [], verifiedModels: [], verifiedSubagents: [] }),
+      capabilities: () => ({
+        version: 1,
+        generatedAt: '',
+        transportId: 'failing',
+        capabilities: [],
+        verifiedModels: [],
+        verifiedSubagents: [],
+      }),
     };
-    provider = new ChatProvider({ store, adapter: failing, redact: createRedactor() });
+    provider = new ChatProvider({ store, adapterProvider: () => failing, redact: createRedactor() });
     await provider.sendPrompt('boom');
     const session = store.active();
     expect(session?.taskStatus).toBe('failed');

@@ -17,7 +17,8 @@ import type { SessionStore } from './SessionStore';
 
 export interface ChatProviderOptions {
   readonly store: SessionStore;
-  readonly adapter: FreebuffAdapter;
+  /** Transport factory: evaluated per task so auth-driven switching (mock ↔ SDK) works. */
+  readonly adapterProvider: () => FreebuffAdapter;
   readonly redact: (s: string) => string;
   readonly maxPromptBytes?: number;
   readonly taskTimeoutMs?: number;
@@ -30,7 +31,7 @@ export type ChatProviderListener = () => void;
 
 export class ChatProvider {
   private readonly store: SessionStore;
-  private readonly adapter: FreebuffAdapter;
+  private readonly adapterProvider: () => FreebuffAdapter;
   private readonly redact: (s: string) => string;
   private readonly maxPromptBytes: number;
   private readonly taskTimeoutMs: number;
@@ -39,7 +40,7 @@ export class ChatProvider {
 
   constructor(options: ChatProviderOptions) {
     this.store = options.store;
-    this.adapter = options.adapter;
+    this.adapterProvider = options.adapterProvider;
     this.redact = options.redact;
     this.maxPromptBytes = options.maxPromptBytes ?? DEFAULT_MAX_PROMPT_BYTES;
     this.taskTimeoutMs = options.taskTimeoutMs ?? DEFAULT_TASK_TIMEOUT_MS;
@@ -93,7 +94,7 @@ export class ChatProvider {
     };
 
     try {
-      const handle = await this.adapter.startTask(
+      const handle = await this.adapterProvider().startTask(
         startInput,
         {
           cwd: process.cwd(),
@@ -181,7 +182,7 @@ export class ChatProvider {
       this.emit();
       return;
     }
-    await this.adapter.cancel(handle);
+    await this.adapterProvider().cancel(handle);
     this.handles.delete(id);
   }
 
@@ -209,7 +210,7 @@ export class ChatProvider {
   deleteSession(sessionId: string): void {
     const handle = this.handles.get(sessionId);
     if (handle) {
-      void this.adapter.cancel(handle);
+      void this.adapterProvider().cancel(handle);
       this.handles.delete(sessionId);
     }
     this.store.deleteSession(sessionId);

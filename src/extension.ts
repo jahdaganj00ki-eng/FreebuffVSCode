@@ -31,6 +31,7 @@ import { ChatProvider } from './chat/ChatProvider';
 import { ChatWebviewProvider } from './ui/ChatWebviewProvider';
 import { createRedactor } from './diagnostics/Redactor';
 import { ProcessTransport } from './freebuff/ProcessTransport';
+import { FreebuffClient } from './freebuff/FreebuffClient';
 
 // Active transport for Phase 2: the deterministic mock. Phase 5 swaps
 // this for the verified Freebuff-CLI subprocess transport.
@@ -62,6 +63,23 @@ function getChatWebview(): ChatWebviewProvider {
     throw new Error('Chat webview not initialized — activate() must run first.');
   }
   return chatWebview;
+}
+
+/**
+ * Transport selection: the SDK transport (verified, auth-gated) is
+ * used when a Codebuff API key is configured via BYOK; otherwise the
+ * deterministic mock keeps the chat usable.
+ */
+function pickAdapter(): FreebuffAdapter {
+  const redact = createRedactor();
+  const auth = getAuth();
+  if (auth.allowByokEnabled) {
+    return new FreebuffClient({
+      getApiKey: () => auth.getByokKey('codebuff'),
+      redact,
+    });
+  }
+  return new MockTransport();
 }
 
 let outputChannel: vscode.OutputChannel | undefined;
@@ -161,11 +179,16 @@ async function openChat(): Promise<void> {
     await store.init();
     const chatProvider = new ChatProvider({
       store,
-      adapter: getAdapter(),
+      adapterProvider: () => pickAdapter(),
       redact: createRedactor(),
       maxPromptBytes,
     });
-    chatWebview = new ChatWebviewProvider(extensionContext.extensionUri, getAdapter(), chatProvider, getAuth());
+    chatWebview = new ChatWebviewProvider(
+      extensionContext.extensionUri,
+      () => pickAdapter().capabilities(),
+      chatProvider,
+      getAuth(),
+    );
   }
   getChatWebview().open();
 }
