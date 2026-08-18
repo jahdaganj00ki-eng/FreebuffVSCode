@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — Phase 3 — 2026-08-18
+
+### Added
+
+- `src/auth/types.ts` — verified BYOK provider catalog (`claude`,
+  `chatgpt`, `codebuff`) from the Freebuff launch post and
+  `@codebuff/sdk` docs; `SecretStore` contract; booleans-only
+  `AuthStatus`.
+- `src/auth/SecretStore.ts` — `VscodeSecretStore` backed by
+  `vscode.SecretStorage`. Values never logged, printed or copied.
+- `src/auth/AuthService.ts` — anonymous-by-default lifecycle:
+  `init`, `setAllowByok`, `isAnonymous`, `hasByokKey`, `getByokKey`
+  (adapter-only), `setByokKey`, `clearByokKey`, `status`, change
+  notifications. Minimal provider-agnostic `validateByokKey`
+  (empty/whitespace/short rejection; no invented key formats).
+- `Freebuff: Configure BYOK Key` command (QuickPick provider →
+  password input → SecretStorage).
+- `tests/unit/phase3.test.ts` — 13 tests: in-memory store,
+  validation, anonymous default, booleans-only status, config
+  toggle, notifications, init-from-storage.
+
+### Security
+
+- Raw keys are never logged, printed, or included in any status or
+  diagnostic output; tests assert the status shape contains no key
+  material.
+
 ## [0.2.0] — Phase 2 — 2026-08-18
 
 ### Added

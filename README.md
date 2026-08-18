@@ -22,7 +22,7 @@ agent into Visual Studio Code. It is designed to be:
 | 0 | Source verification, inventory, threat model | ✅ complete |
 | 1 | Skeleton: activation, three commands, OutputChannel | ✅ complete |
 | 2 | `FreebuffAdapter` + typed models + mock transport + capability matrix | ✅ complete |
-| 3 | BYOK storage (`AuthService` + `SecretStorage`) | ⏳ planned |
+| 3 | BYOK storage (`AuthService` + `SecretStorage`) | ✅ complete |
 | 4 | Chat Webview with mock streaming | ⏳ planned |
 | 5 | Verified `freebuff` CLI subprocess transport | ⏳ planned |
 | 6 | Context selection + ignore rules | ⏳ planned |
@@ -62,6 +62,11 @@ agent into Visual Studio Code. It is designed to be:
   from any SDK/CLI implementation, with a deterministic
   `MockTransport` behind it and a veracity-tagged capability matrix
   surfaced by `Freebuff: Show Status`.
+- Anonymous-by-default BYOK lifecycle: `AuthService` + VS Code
+  `SecretStorage`. `Freebuff: Configure BYOK Key` manages optional
+  keys for Claude Code, ChatGPT (GPT-5.4), or the Codebuff SDK path.
+  Keys are stored only in SecretStorage and never logged; status
+  output is booleans only.
 
 ## What is *not* implemented (and why)
 

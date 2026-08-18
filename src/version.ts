@@ -2,7 +2,7 @@
 // Loaded from package.json at build time. Kept as a const so the
 // bundle does not depend on a runtime fs read in the extension host.
 
-export const EXTENSION_VERSION = '0.2.0';
+export const EXTENSION_VERSION = '0.3.0';
 export const EXTENSION_NAME = 'Freebuff';
 export const EXTENSION_PUBLISHER = 'freebuff-local';
 
