@@ -207,6 +207,15 @@ Freebuff-CLI bleibt als interaktiver Terminal-Pfad erhalten. Folgende Werte sind
 - Free-Agents: Template-Liste enthält `base_free` (Free-Modus im
   SDK verankert); Agent-Auswahl via dokumentierter `agent`-Option
   (`codebuff/base@latest` Default).
+- **Kostenloser Modus (NEU, 0.7.0)**: `RunOptions.costMode?: string`
+  ist in den installierten Typen 0.10.7 exportiert (d.ts Zeile 2423);
+  der SDK-eigene Doc-Kommentar lautet wörtlich *"Cost mode - 'free'
+  mode means 0 credits charged for all agents"*. Die `costModes`-
+  Liste (`free | normal | max | experimental | ask`) und die
+  Zuordnung `free → AgentTemplateTypes.base_free` sind im
+  öffentlichen Source (model-config, main-prompt) bestätigt. Das SDK
+  sendet `cost_mode` an den Provider; die Berechtigung entscheidet
+  der Server (402 → `payment-required`).
 - BYOK: `CODEBUFF_BYOK_OPENROUTER` dokumentiert.
 
 **Packaging-Hinweise (Phase 10 offen)**:
@@ -220,7 +229,20 @@ Freebuff-CLI bleibt als interaktiver Terminal-Pfad erhalten. Folgende Werte sind
 
 **UNVERIFIED**: exakter Free-Tier-Auth-Flow über die SDK-API (nur
 Key-Pfad dokumentiert); E2E-Verifikation ohne Nutzer-Key nicht
-möglich (Tests mocken das SDK).
+möglich (Tests mocken das SDK); ob ein konkreter Account `cost_mode:
+free` serverseitig akzeptiert (Freischaltung), ist nicht clientseitig
+abfragbar (User-Schema enthält keine Plan-/Free-Flags).
+
+**Umsetzung in der Erweiterung (0.7.0)**:
+
+- Setting `freebuff.sdkCostMode` (Enum, Default `normal`).
+- `StartTaskInput.costMode` + `FreebuffClientOptions.costMode`;
+  `costMode: "free"` setzt ohne explizite Agent-Wahl automatisch
+  `agent: "codebuff/base_free@latest"` (SDK-Template `base_free`,
+  VERIFIED) und reicht `costMode` an `client.run()` durch.
+- Ohne BYOK-Key bleibt der Chat im Mock-Transport (ehrlich
+  gekennzeichnet); der Free-Modus ist dann nicht erreichbar, weil
+  der SDK-Pfad zwingend einen API-Key verlangt.
 
 ## 7. Plattform- und Versionsgrenzen
 

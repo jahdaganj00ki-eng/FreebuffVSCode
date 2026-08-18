@@ -25,6 +25,12 @@ export const VERIFIED_SUBAGENTS: ReadonlyArray<string> = [
   'thinker-with-files-gemini',
 ];
 
+// SDK cost modes (VERIFIED in @codebuff/sdk@0.10.7: `costModes` list in
+// model-config and RunOptions.costMode). 'free' is documented as
+// "0 credits charged for all agents" and maps to the `base_free` agent
+// template. Eligibility is decided server-side.
+export const SDK_COST_MODES: ReadonlyArray<string> = ['free', 'normal', 'max', 'experimental', 'ask'];
+
 // SDK agent IDs from the Codebuff docs (codebuff.com/docs/agents/overview,
 // 2026-08-18). Used by the SDK transport's agent picker.
 export const SDK_AGENT_IDS: ReadonlyArray<string> = [
@@ -93,6 +99,11 @@ const CAPABILITIES: ReadonlyArray<Capability> = [
     id: 'sdk-resume',
     status: 'VERIFIED',
     note: 'previousRun?: RunState confirmed; RunState = { sessionState?, output, traceSessionId }.',
+  },
+  {
+    id: 'sdk-free-mode',
+    status: 'VERIFIED',
+    note: 'RunOptions.costMode="free" is documented in @codebuff/sdk@0.10.7 as "0 credits charged for all agents" and selects the base_free agent template. Surfaced via freebuff.sdkCostMode.',
   },
   {
     id: 'streaming',

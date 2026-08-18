@@ -3,7 +3,7 @@
   "displayName": "Freebuff",
   "description": "Bring the free Freebuff CLI coding agent into VS Code. No API key, no account. Optional BYOK models via SecretStorage.",
   "publisher": "freebuff-local",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -117,6 +117,18 @@
           "type": "boolean",
           "default": false,
           "description": "Allow BYOK for paid models (Claude Code, ChatGPT). Keys are stored in VS Code SecretStorage."
+        },
+        "freebuff.sdkCostMode": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "free",
+            "max",
+            "experimental",
+            "ask"
+          ],
+          "default": "normal",
+          "description": "SDK cost mode for the chat (requires an SDK API key via BYOK). 'free' is documented in @codebuff/sdk as charging 0 credits for all agents and uses the base_free agent template; 'normal' is the default. Eligibility for free mode is decided server-side."
         },
         "freebuff.terminal.timeoutMs": {
           "type": "number",

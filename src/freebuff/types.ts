@@ -72,6 +72,13 @@ export interface StartTaskInput {
   readonly agent?: string;
   /** Model from the verified free-tier list (see CapabilityMatrix). */
   readonly model?: string;
+  /**
+   * SDK cost mode ('free' | 'normal' | 'max' | 'experimental' | 'ask').
+   * VERIFIED in @codebuff/sdk@0.10.7 RunOptions; the SDK documents
+   * "'free' mode means 0 credits charged for all agents". The mock
+   * transport ignores it. Eligibility is decided server-side.
+   */
+  readonly costMode?: string;
   readonly projectFiles?: Readonly<Record<string, string>>;
   readonly maxAgentSteps?: number;
   /** Opaque session state from a previous run (mock: accepted, not branched on). */

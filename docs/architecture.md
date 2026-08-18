@@ -177,6 +177,7 @@ Daher:
 | `freebuff.terminal.timeoutMs` | `30000` | Befehls-Timeout |
 | `freebuff.terminal.allowNetwork` | `false` | Netzwerk-Befehle global erlauben |
 | `freebuff.workspace.trustRequired` | `true` | Risikofunktionen nur bei vertrauenswürdigen Workspaces |
+| `freebuff.sdkCostMode` | `normal` | SDK-Kostenmodus (`free \| normal \| max \| experimental \| ask`). VERIFIED in `@codebuff/sdk@0.10.7`; `free` = 0 Credits für alle Agenten, nutzt `base_free`-Template. Berechtigung entscheidet der Server. |
 | `freebuff.webview.csp` | Restriktiv (siehe `security.md`) | CSP-Override (nur Verschärfung) |
 
 ## 9. Erweiterungspunkte

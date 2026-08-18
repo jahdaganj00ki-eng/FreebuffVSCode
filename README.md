@@ -25,7 +25,7 @@ agent into Visual Studio Code. It is designed to be:
 | 3 | BYOK storage (`AuthService` + `SecretStorage`) | ✅ complete |
 | 4 | Chat Webview with mock streaming | ✅ complete |
 | 5 | Verified `freebuff` CLI surface (`--version`/`--help` probes; agent streaming documented **BLOCKED** — TUI-only) | ✅ complete |
-| 6 | **SDK transport as the chat foundation** (`@codebuff/sdk`, auth-gated; context/ignore rules next) | ✅ SDK basis |
+| 6 | **SDK transport as the chat foundation** (`@codebuff/sdk`, auth-gated; free mode via `costMode: "free"` — 0 credits, `base_free` agent) | ✅ SDK basis |
 | 7 | Diff/apply workflow | ⏳ planned |
 | 8 | Tool allowlist + terminal approval | ⏳ planned |
 | 9 | Tests, security docs, CI hardening | ⏳ planned |
@@ -68,12 +68,30 @@ agent into Visual Studio Code. It is designed to be:
   Keys are stored only in SecretStorage and never logged; status
   output is booleans only.
 
+## Using the free models
+
+There are two verified ways to use Freebuff's free models:
+
+1. **Free, anonymous, no key (default):** `Freebuff: Open CLI in
+   Terminal` starts the real Freebuff CLI in the integrated terminal.
+   The CLI picks its free models itself (DeepSeek V4 Pro/Flash,
+   MiniMax M3, MiMo; GLM via earned sessions). The CLI is an
+   interactive TUI — there is **no** documented headless protocol, so
+   the in-extension chat cannot stream from it.
+2. **In the chat webview (SDK):** requires a Codebuff API key (BYOK,
+   stored in SecretStorage) and `freebuff.allowBringYourOwnKey`.
+   Set **`freebuff.sdkCostMode` to `free`** — `@codebuff/sdk`
+   documents this as *"0 credits charged for all agents"* and maps it
+   to the `base_free` agent template. Default is `normal`; whether
+   your account is eligible for free mode is decided server-side
+   (a 402 surfaces as an explicit payment-required error).
+
 ## What is *not* implemented (and why)
 
 | Capability | Reason |
 | --- | --- |
 | Real chat streaming | Phase 4 — requires verified CLI wire format |
-| `@codebuff/sdk` integration | Phase 5 — gated behind a BYOK opt-in and user-supplied `CODEBUFF_API_KEY` |
+| `@codebuff/sdk` integration | Phase 6 — gated behind a BYOK opt-in and user-supplied `CODEBUFF_API_KEY` |
 | Tool execution | Phase 8 — tool allowlist not finalized |
 | Diff/apply workflow | Phase 7 — paths not finalized |
 | Ad-supported prompts transparency | Linked from Privacy Policy; surfaced in UI in Phase 4 |

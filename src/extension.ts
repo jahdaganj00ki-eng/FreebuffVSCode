@@ -32,6 +32,7 @@ import { ChatWebviewProvider } from './ui/ChatWebviewProvider';
 import { createRedactor } from './diagnostics/Redactor';
 import { ProcessTransport } from './freebuff/ProcessTransport';
 import { FreebuffClient } from './freebuff/FreebuffClient';
+import { SDK_COST_MODES } from './freebuff/CapabilityMatrix';
 
 // Active transport for Phase 2: the deterministic mock. Phase 5 swaps
 // this for the verified Freebuff-CLI subprocess transport.
@@ -74,12 +75,17 @@ function pickAdapter(): FreebuffAdapter {
   const redact = createRedactor();
   const auth = getAuth();
   if (auth.allowByokEnabled) {
-    return new FreebuffClient({
+    const costMode = vscode.workspace.getConfiguration('freebuff').get<string>('sdkCostMode');
+    const client = new FreebuffClient({
       getApiKey: () => auth.getByokKey('codebuff'),
       redact,
+      ...(costMode !== undefined ? { costMode } : {}),
     });
+    adapter = client;
+    return client;
   }
-  return new MockTransport();
+  adapter = new MockTransport();
+  return adapter;
 }
 
 let outputChannel: vscode.OutputChannel | undefined;
@@ -121,7 +127,10 @@ function buildStatusReport(): string {
   lines.push('FreebuffVSIX status');
   lines.push('--------------------');
   lines.push(`Extension : ${EXTENSION_NAME} v${EXTENSION_VERSION}`);
-  lines.push(`Transport : ${getAdapter().id} (mock until Phase 5)`);
+  const activeCostMode = vscode.workspace.getConfiguration('freebuff').get<string>('sdkCostMode') ?? 'normal';
+  const sdkCostModeValid = SDK_COST_MODES.includes(activeCostMode);
+  lines.push(`Transport : ${getAdapter().id}`);
+  lines.push(`SDK cost mode : ${sdkCostModeValid ? activeCostMode : `${activeCostMode} (unsupported — SDK ignores it)`} ("free" = 0 credits, SDK-documented)`);
   if (result.found && result.path) {
     lines.push(`CLI found : yes (${result.path})`);
     lines.push('Run "Freebuff: Open Chat" to start.');
@@ -343,6 +352,12 @@ export function activate(context: vscode.ExtensionContext): void {
       if (event.affectsConfiguration('freebuff.allowBringYourOwnKey')) {
         const next = vscode.workspace.getConfiguration('freebuff').get<boolean>('allowBringYourOwnKey') ?? false;
         getAuth().setAllowByok(next);
+      }
+      if (event.affectsConfiguration('freebuff.sdkCostMode')) {
+        // Recreate the adapter so the next task picks up the new cost mode.
+        adapter = undefined;
+        const channel = getChannel();
+        channel.appendLine('SDK cost mode changed — adapter will be recreated on the next task.');
       }
     }),
   );

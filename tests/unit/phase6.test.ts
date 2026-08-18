@@ -91,6 +91,68 @@ describe('FreebuffClient (SDK transport)', () => {
     expect(fake.runs[0]?.options.agent).toBe('codebuff/base@latest');
   });
 
+  it('passes the configured cost mode into client.run without an agent default change', async () => {
+    const freeClient = new FreebuffClient({
+      getApiKey: async () => 'cb-test-key-0123456789',
+      sdk: fake.sdk,
+      redact: createRedactor(),
+      costMode: 'normal',
+    });
+    const handle = await freeClient.startTask({ prompt: 'hi' }, makeCtx());
+    expect(fake.runs[0]?.options.costMode).toBe('normal');
+    expect(fake.runs[0]?.options.agent).toBe('codebuff/base@latest');
+    handle.dispose();
+  });
+
+  it('maps costMode "free" to the base_free agent and passes costMode through', async () => {
+    const freeClient = new FreebuffClient({
+      getApiKey: async () => 'cb-test-key-0123456789',
+      sdk: fake.sdk,
+      redact: createRedactor(),
+      costMode: 'free',
+    });
+    const handle = await freeClient.startTask({ prompt: 'hi' }, makeCtx());
+    const run = fake.runs[0];
+    expect(run?.options.costMode).toBe('free');
+    // Free mode selects the documented base_free template (0 credits).
+    expect(run?.options.agent).toBe('codebuff/base_free@latest');
+    handle.dispose();
+  });
+
+  it('per-task costMode overrides the configured default; explicit agent wins over free mapping', async () => {
+    const freeClient = new FreebuffClient({
+      getApiKey: async () => 'cb-test-key-0123456789',
+      sdk: fake.sdk,
+      redact: createRedactor(),
+      costMode: 'normal',
+    });
+    const handle = await freeClient.startTask(
+      { prompt: 'hi', costMode: 'free', agent: 'codebuff/reviewer' },
+      makeCtx(),
+    );
+    const run = fake.runs[0];
+    expect(run?.options.costMode).toBe('free');
+    expect(run?.options.agent).toBe('codebuff/reviewer');
+    handle.dispose();
+  });
+
+  it('rejects an unsupported cost mode in the constructor', () => {
+    expect(
+      () =>
+        new FreebuffClient({
+          getApiKey: async () => 'cb-test-key-0123456789',
+          sdk: fake.sdk,
+          redact: createRedactor(),
+          costMode: 'turbo',
+        }),
+    ).toThrow(/Unsupported SDK cost mode/);
+  });
+
+  it('omits costMode from run options when neither input nor config set it', async () => {
+    await client.startTask({ prompt: 'hi' }, makeCtx());
+    expect(fake.runs[0]?.options.costMode).toBeUndefined();
+  });
+
   it('maps PrintModeEvents into canonical ChatEvents', async () => {
     const handle = await client.startTask({ prompt: 'hi' }, makeCtx());
     const run = fake.runs[0];

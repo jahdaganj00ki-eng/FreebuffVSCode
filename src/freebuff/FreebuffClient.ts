@@ -25,7 +25,7 @@ import type {
 } from '@codebuff/sdk';
 
 import type { FreebuffAdapter } from './FreebuffAdapter';
-import { buildSdkCapabilityReport } from './CapabilityMatrix';
+import { buildSdkCapabilityReport, SDK_COST_MODES } from './CapabilityMatrix';
 import { AdapterError } from './types';
 import type {
   AdapterContext,
@@ -49,6 +49,14 @@ export interface FreebuffClientOptions {
   getApiKey: () => Promise<string | undefined>;
   /** Default agent for runs without an explicit agent. */
   defaultAgent?: string;
+  /**
+   * SDK cost mode (VERIFIED in @codebuff/sdk@0.10.7 RunOptions):
+   * 'free' means 0 credits for all agents and selects the `base_free`
+   * agent template. 'normal' | 'max' | 'experimental' | 'ask' map to
+   * the corresponding SDK templates. Overridable per task via
+   * StartTaskInput.costMode.
+   */
+  costMode?: string;
   /** Redactor for captured strings. */
   redact?: (s: string) => string;
   /** Injectable SDK module (tests). Defaults to the real @codebuff/sdk. */
@@ -56,6 +64,8 @@ export interface FreebuffClientOptions {
 }
 
 const DEFAULT_AGENT = 'codebuff/base@latest';
+/** Free-mode agent template, VERIFIED in the SDK's AgentTemplateTypeList. */
+const FREE_AGENT = 'codebuff/base_free@latest';
 const MAX_TOOL_TEXT = 300;
 const MAX_SUMMARY = 2_000;
 
@@ -166,6 +176,7 @@ class SdkTaskHandle implements TaskHandle {
     private readonly sdk: SdkModuleLike,
     private readonly redact: (s: string) => string,
     private readonly defaultAgent: string,
+    private readonly defaultCostMode: string | undefined,
   ) {
     this.id = id;
     if (ctx.signal) {
@@ -181,8 +192,14 @@ class SdkTaskHandle implements TaskHandle {
   private async runSdk(input: StartTaskInput, ctx: AdapterContext): Promise<void> {
     try {
       const client = new this.sdk.CodebuffClient({ apiKey: this.apiKey, cwd: ctx.cwd });
+      // Free mode (VERIFIED): the SDK maps costMode 'free' to the
+      // `base_free` agent template (0 credits for all agents). When the
+      // caller did not pick an agent explicitly, use the free template
+      // directly so the free-model path is guaranteed.
+      const costMode = input.costMode ?? this.defaultCostMode;
+      const agent = input.agent ?? (costMode === 'free' ? FREE_AGENT : this.defaultAgent);
       const runOptions: RunOptions & CodebuffClientOptions = {
-        agent: input.agent ?? this.defaultAgent,
+        agent,
         prompt: input.prompt,
         signal: this.controller.signal,
         handleEvent: (event: PrintModeEvent) => {
@@ -193,6 +210,7 @@ class SdkTaskHandle implements TaskHandle {
             this.emit({ type: 'text', text: this.redact(chunk) });
           }
         },
+        ...(costMode !== undefined ? { costMode } : {}),
         ...(input.maxAgentSteps !== undefined ? { maxAgentSteps: input.maxAgentSteps } : {}),
         ...(input.projectFiles !== undefined ? { projectFiles: input.projectFiles } : {}),
         ...(input.previousSessionState !== undefined
@@ -313,6 +331,7 @@ export class FreebuffClient implements FreebuffAdapter {
   readonly id = 'sdk';
   private readonly getApiKey: () => Promise<string | undefined>;
   private readonly defaultAgent: string;
+  private readonly costMode: string | undefined;
   private readonly redact: (s: string) => string;
   private readonly sdk: SdkModuleLike;
   private counter = 0;
@@ -320,6 +339,13 @@ export class FreebuffClient implements FreebuffAdapter {
   constructor(options: FreebuffClientOptions) {
     this.getApiKey = options.getApiKey;
     this.defaultAgent = options.defaultAgent ?? DEFAULT_AGENT;
+    if (options.costMode !== undefined && !SDK_COST_MODES.includes(options.costMode)) {
+      throw new AdapterError(
+        'internal',
+        `Unsupported SDK cost mode "${options.costMode}". Supported: ${SDK_COST_MODES.join(', ')}.`,
+      );
+    }
+    this.costMode = options.costMode;
     this.redact = options.redact ?? ((s: string) => s);
     this.sdk = options.sdk ?? { CodebuffClient };
   }
@@ -340,7 +366,16 @@ export class FreebuffClient implements FreebuffAdapter {
       );
     }
     this.counter += 1;
-    return new SdkTaskHandle(`sdk-${this.counter}`, input, ctx, apiKey, this.sdk, this.redact, this.defaultAgent);
+    return new SdkTaskHandle(
+      `sdk-${this.counter}`,
+      input,
+      ctx,
+      apiKey,
+      this.sdk,
+      this.redact,
+      this.defaultAgent,
+      this.costMode,
+    );
   }
 
   async cancel(handle: TaskHandle): Promise<void> {

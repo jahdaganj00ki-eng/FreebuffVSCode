@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] — Free-Modus im SDK-Transport — 2026-08-18
+
+### Added
+
+- **`freebuff.sdkCostMode`** Setting (Enum `normal | free | max |
+  experimental | ask`, Default `normal`).
+- `StartTaskInput.costMode` + `FreebuffClientOptions.costMode`:
+  `costMode: "free"` reicht `costMode` an `client.run()` durch und
+  setzt ohne explizite Agent-Wahl automatisch
+  `agent: "codebuff/base_free@latest"`.
+- VERIFIED (installierte Typen + Source, `@codebuff/sdk@0.10.7`):
+  `RunOptions.costMode?: string` (d.ts), SDK-Doc-Kommentar *"'free'
+  mode means 0 credits charged for all agents"*, `costModes`-Liste,
+  Zuordnung `free → base_free`.
+- Constructor validiert `costMode` gegen die SDK-Liste (kein
+  ungeprüfter Wert erreicht das SDK); Status-Report zeigt aktiven
+  Cost-Mode; Config-Listener baut den Adapter neu.
+- Tests: Free-Modus-Durchreichung, Agent-Umschaltung, Override-
+  Reihenfolge, Constructor-Validierung (Suite: **86 Tests**).
+
+### Security
+
+- Kein Schlüsselmaterial, keine neuen Endpunkte; der Free-Modus ist
+  nur über den bereits auth-gated SDK-Pfad erreichbar (BYOK).
+  Berechtigung entscheidet der Server (402 → payment-required).
+
 ## [0.6.0] — Phase 6: SDK als Chat-Grundlage — 2026-08-18
 
 ### Pivot per Nutzeranweisung
