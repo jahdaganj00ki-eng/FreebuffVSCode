@@ -3,7 +3,7 @@
   "displayName": "Freebuff",
   "description": "Bring the free Freebuff CLI coding agent into VS Code. No API key, no account. Optional BYOK models via SecretStorage.",
   "publisher": "freebuff-local",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -68,6 +68,18 @@
         "title": "Freebuff: Configure BYOK Key",
         "category": "Freebuff",
         "icon": "$(key)"
+      },
+      {
+        "command": "freebuff.command.openCliTerminal",
+        "title": "Freebuff: Open CLI in Terminal",
+        "category": "Freebuff",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "freebuff.command.probeCli",
+        "title": "Freebuff: Check CLI Version",
+        "category": "Freebuff",
+        "icon": "$(search)"
       }
     ],
     "viewsContainers": {

@@ -4,6 +4,39 @@ All notable changes to this project are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — Phase 5 — 2026-08-18
+
+### Verified (dry-run, 2026-08-18)
+
+- `freebuff --version` → `0.0.150` (isolated HOME; launcher downloads
+  the Bun binary into `~/.config/manicode/`).
+- `freebuff --help` → `-v/--version`, `--continue [id]`, `--cwd <dir>`,
+  `-h/--help`, command `login`.
+- The CLI is an **interactive TUI** (alternate screen, folder picker,
+  requires a real TTY — per launcher source: "the TUI owns the
+  terminal"). **No documented headless/stdin protocol exists.**
+
+### Implemented
+
+- `src/freebuff/ProcessTransport.ts` — verified CLI surface only:
+  `probeVersion()`, `probeHelp()`, `cliArgs(cwd)`; `startTask()`
+  rejects with `AdapterError('forbidden')` (BLOCKED: no TUI
+  scraping). Arguments as `string[]`, timeout + SIGKILL, byte-capped
+  and redacted capture, injectable spawn for tests.
+- `Freebuff: Open CLI in Terminal` — shows command + cwd, requires
+  modal confirmation, then opens the TUI in the integrated terminal.
+- `Freebuff: Check CLI Version` — runs the verified `--version` probe
+  and reports to the OutputChannel + notification.
+- Capability matrix extended: `cli-transport`/`cli-version-probe`/
+  `cli-help`/`cli-terminal-launch` → VERIFIED;
+  `cli-agent-streaming` → BLOCKED.
+- Inventory + architecture updated with the Phase-5 findings.
+
+### Security
+
+- No auto-install, no hidden binary dependency, no shell strings,
+  redacted probe output (test-asserted).
+
 ## [0.4.0] — Phase 4 — 2026-08-18
 
 ### Added

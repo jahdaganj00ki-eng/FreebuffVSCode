@@ -83,28 +83,31 @@ src/
 7. **`security/ThreatModel.ts`** führt das Mapping aus
    `docs/security.md` als typsichere Runtime-Tabelle.
 
-## 3. Transport-Layer (Freebuff-CLI bevorzugt)
+## 3. Transport-Layer (CLI: nur verifizierte Oberfläche)
 
-- **Primary: `ProcessTransport.ts`**. Die Erweiterung startet
-  `freebuff` als Kindprozess und tauscht JSON/Text über stdio aus.
-  Aufruf:
-  - `which freebuff` (oder gleichwertiger Lookup via Node) bei
-    Aktivierung. Ergebnis wird gecached.
-  - Bei Fehlen: aktivierter Empty-State („Freebuff CLI nicht
-    installiert — `npm i -g freebuff`).
-  - Versionsprobe: `freebuff --version`. Wenn das Ergebnis nicht in
-    `engines.node >=18` liegt, wird eine Warnung gezeigt (keine
-    harte Sperre — Freebuff garantiert 16+, Erweiterung erfordert
-    18+).
-  - Argumentliste ausschließlich als `string[]`. **Keine
-    Shell-Konstrukte.**
-  - stdout/stderr werden in `Redactor` geleitet, bevor sie in den
-    `OutputChannel` fließen.
-  - Timeout: 5 min pro Stream-Tick, abbrechbar.
-- **Secondary: `FreebuffClient.ts`**. Optionaler Adapter auf
-  `@codebuff/sdk`. Wird nur instanziiert, wenn der Nutzer in der
-  UI Pro/BYOK aktiviert und ein Secret gespeichert wurde. Der
-  MVP-Ship-Zustand ist **ohne** diesen Pfad.
+**Phase-5-Finding (Dry-Run 2026-08-18)**: Das Freebuff-CLI ist eine
+interaktive TUI ohne dokumentierte nicht-interaktive Schnittstelle.
+Daher:
+
+- **`ProcessTransport.ts`** implementiert ausschließlich die
+  verifizierten CLI-Pfade:
+  - `probeVersion()` — `freebuff --version` mit Timeout, Redaction,
+    sauberem Kill. Ergebnis: `0.0.150` (Dry-Run).
+  - `probeHelp()` — `freebuff --help` (Cap, Redaction).
+  - `cliArgs(cwd)` — Argumentvektor `['freebuff', '--cwd', <dir>]`
+    für den sichtbaren Terminal-Start.
+  - `startTask()` → wirft `AdapterError('forbidden')` mit
+    `CLI_TUI_ONLY_MESSAGE`. **Kein TUI-Scraping.**
+- **Terminal-Launch** (`Freebuff: Open CLI in Terminal`): zeigt
+  Befehl + Arbeitsverzeichnis, verlangt modale Bestätigung, öffnet
+  dann `freebuff` im integrierten Terminal (fester Befehl, kein
+  Shell-String, `cwd` über `createTerminal({ cwd })`).
+- **Binary-Policy**: Die Erweiterung lädt nie selbst Binaries herunter
+  und führt keine aus; der Launcher des npm-Pakets macht das bei der
+  Erstausführung durch den Nutzer (`~/.config/manicode/`).
+- **Secondary: `FreebuffClient.ts`** (SDK). Wird nur instanziiert,
+  wenn der Nutzer in der UI Pro/BYOK aktiviert und ein Secret
+  gespeichert wurde. Der MVP-Ship-Zustand ist **ohne** diesen Pfad.
 
 ## 3a. SDK-Pinning & Kompatibilitätsschicht (optional)
 

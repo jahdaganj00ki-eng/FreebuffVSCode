@@ -24,7 +24,7 @@ agent into Visual Studio Code. It is designed to be:
 | 2 | `FreebuffAdapter` + typed models + mock transport + capability matrix | ✅ complete |
 | 3 | BYOK storage (`AuthService` + `SecretStorage`) | ✅ complete |
 | 4 | Chat Webview with mock streaming | ✅ complete |
-| 5 | Verified `freebuff` CLI subprocess transport | ⏳ planned |
+| 5 | Verified `freebuff` CLI surface (`--version`/`--help` probes; agent streaming documented **BLOCKED** — TUI-only) | ✅ complete |
 | 6 | Context selection + ignore rules | ⏳ planned |
 | 7 | Diff/apply workflow | ⏳ planned |
 | 8 | Tool allowlist + terminal approval | ⏳ planned |

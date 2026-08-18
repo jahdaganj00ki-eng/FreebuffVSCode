@@ -29,12 +29,32 @@ const CAPABILITIES: ReadonlyArray<Capability> = [
   {
     id: 'mock-transport',
     status: 'VERIFIED',
-    note: 'Deterministic mock transport is the active transport until Phase 5.',
+    note: 'Deterministic mock transport is the fallback for UI/dev purposes.',
   },
   {
     id: 'cli-transport',
-    status: 'UNVERIFIED',
-    note: 'Freebuff CLI wire protocol is not publicly documented; dry-run discovery planned in Phase 5.',
+    status: 'VERIFIED',
+    note: 'Freebuff CLI `--version`/`--help` probed successfully (dry-run 2026-08-18, v0.0.150).',
+  },
+  {
+    id: 'cli-version-probe',
+    status: 'VERIFIED',
+    note: '`freebuff --version` is a documented flag and works; used by ProcessTransport.probeVersion().',
+  },
+  {
+    id: 'cli-help',
+    status: 'VERIFIED',
+    note: '`freebuff --help` documents -v/--version, --continue, --cwd, -h/--help, command login.',
+  },
+  {
+    id: 'cli-agent-streaming',
+    status: 'BLOCKED',
+    note: 'Freebuff CLI is an interactive TUI requiring a real TTY; no documented headless/stdin protocol. TUI scraping is forbidden by the master prompt.',
+  },
+  {
+    id: 'cli-terminal-launch',
+    status: 'VERIFIED',
+    note: 'Launching `freebuff --cwd <dir>` in a user-visible terminal is the documented usage path.',
   },
   {
     id: 'sdk-transport',

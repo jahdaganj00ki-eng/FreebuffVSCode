@@ -30,6 +30,7 @@ import { VscodeSessionPersistence } from './chat/VscodeSessionPersistence';
 import { ChatProvider } from './chat/ChatProvider';
 import { ChatWebviewProvider } from './ui/ChatWebviewProvider';
 import { createRedactor } from './diagnostics/Redactor';
+import { ProcessTransport } from './freebuff/ProcessTransport';
 
 // Active transport for Phase 2: the deterministic mock. Phase 5 swaps
 // this for the verified Freebuff-CLI subprocess transport.
@@ -236,6 +237,54 @@ async function manageByok(): Promise<void> {
   await vscode.window.showInformationMessage(`Stored BYOK key for ${pick.label}.`);
 }
 
+async function probeCli(): Promise<void> {
+  const channel = getChannel();
+  const transport = new ProcessTransport({ redact: createRedactor() });
+  const probe = await transport.probeVersion();
+  channel.appendLine('');
+  channel.appendLine('Freebuff CLI probe');
+  channel.appendLine('------------------');
+  if (probe.ok && probe.version) {
+    channel.appendLine(`OK — Freebuff CLI version ${probe.version}`);
+    channel.appendLine('Free tier: anonymous, no API key. Agent streaming via the CLI is');
+    channel.appendLine('BLOCKED (interactive TUI, no documented headless interface).');
+    void vscode.window.showInformationMessage(`Freebuff CLI ${probe.version} detected.`);
+  } else {
+    channel.appendLine('CLI not available or probe failed.');
+    channel.appendLine(probe.error ?? 'Unknown reason.');
+    channel.appendLine(`Install: ${CLI_RECOMMENDED_INSTALL}`);
+    void vscode.window.showWarningMessage('Freebuff CLI not detected. Run `npm install -g freebuff` first.');
+  }
+  channel.show(true);
+}
+
+async function openCliTerminal(): Promise<void> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    void vscode.window.showWarningMessage('Open a workspace folder first — Freebuff CLI works on a project directory.');
+    return;
+  }
+  const cwd = workspaceFolder.uri.fsPath;
+  const transport = new ProcessTransport({ redact: createRedactor() });
+
+  // Visible confirmation per master prompt 6.5: show command + cwd, require approval.
+  const args = transport.cliArgs(cwd).join(' ');
+  const choice = await vscode.window.showWarningMessage(
+    `Launch Freebuff CLI in the integrated terminal?\n\nCommand: ${args}\nWorking directory: ${cwd}\n\n` +
+      'This opens the interactive Freebuff TUI (free tier, anonymous). Prompts are sent to Freebuff servers (see freebuff.com/privacy-policy).',
+    { modal: true },
+    'Open Terminal',
+  );
+  if (choice !== 'Open Terminal') {
+    return;
+  }
+
+  const terminal = vscode.window.createTerminal({ name: 'Freebuff CLI', cwd });
+  terminal.show();
+  // Fixed, documented command — no user-controlled shell string.
+  terminal.sendText('freebuff');
+}
+
 async function installCli(): Promise<void> {
   // We do NOT run npm install or any shell command from this
   // extension. We surface the documented command so the user can
@@ -288,6 +337,12 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('freebuff.command.byok', () => manageByok()),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('freebuff.command.openCliTerminal', () => openCliTerminal()),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('freebuff.command.probeCli', () => probeCli()),
   );
 
   // Friendly empty-state notification if the CLI is missing — but

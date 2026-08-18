@@ -122,7 +122,7 @@ primär**.
   ist das Schlüssel-Schutz-Disziplin vor der ersten Zeile
   Implementierung.
 
-## 5. Freebuff CLI – öffentliche Oberfläche
+## 5. Freebuff CLI – öffentliche Oberfläche (Phase 5: Dry-Run belegt)
 
 | Aspekt | Wert | Quelle | Status |
 | --- | --- | --- | --- |
@@ -130,21 +130,31 @@ primär**.
 | Latest | `0.0.150` | npm-Registry | 2026-08-18 |
 | Lizenz | MIT | npm-Registry | VERIFIED |
 | Engine | `node >= 16` | npm-Registry | VERIFIED (Launch-Post: „Requires Node.js 18+") |
-| Bin | `freebuff` → `index.js` | npm-Registry | VERIFIED |
+| Bin | `freebuff` → `index.js` (Launcher) | npm-Registry | VERIFIED |
 | OS-Support | darwin, linux, win32 | npm-Registry | VERIFIED |
 | CPU-Support | x64, arm64 | npm-Registry | VERIFIED |
-| Repository | `git+https://github.com/CodebuffAI/freebuff-private.git` | npm-Registry | VERIFIED (Repo ist privat) |
-| Sub-Befehle / Flags | Nicht öffentlich dokumentiert | n/a | UNVERIFIED — die Erweiterung ruft die CLI ausschließlich in einem Safe-Modus auf, der nur so viel voraussetzt, wie die CLI garantiert: `freebuff --version`, `freebuff --help`, `freebuff` (TTY/Pipe-Modus). Bestätigte Funktionsname aus `bin`: nur der Programmname selbst. |
-| Server-Stream / Pipes | nicht öffentlich dokumentiert | n/a | UNVERIFIED — Protokoll wird durch die Erweiterung defensiv in `ProcessTransport.ts` gekapselt (stdout/stderr werden redacted gelesen; Parser ist über Schema-Discovery). |
+| Repository | `git+https://github.com/CodebuffAI/freebuff-private.git` | npm-Registry | VERIFIED (Repo privat) |
+| Launcher-Verhalten | lädt beim ersten Aufruf ein Bun-kompiliertes Binary aus `codebuff.com/api/releases/download/{version}/{target}.tar.gz` nach `~/.config/manicode/` und startet es mit geerbtem stdio | Launcher-Source (öffentlich im npm-Tarball) | VERIFIED |
+| `freebuff --version` | liefert `0.0.150` (Dry-Run 2026-08-18, isolierter HOME) | Dry-Run | VERIFIED |
+| `freebuff --help` | `-v/--version`, `--continue [id]`, `--cwd <dir>`, `-h/--help`, command `login` | Dry-Run + `cli/src/cli-args.ts` (public) | VERIFIED |
+| Prompt-Argument | Freebuff ist „simplified CLI — no prompt args" (Codebuff hat `[prompt...]`) | `cli-args.ts` | VERIFIED |
+| Interaktiver Modus | TUI mit Alternate Screen, Ordner-Picker; braucht ein echtes TTY („the TUI owns the terminal") | Dry-Run + Launcher-Source | VERIFIED |
+| Headless-/Print-Modus | **nicht vorhanden / nicht dokumentiert** | Dry-Run + Doku | **BLOCKED** — TUI-Scraping ist per Master-Prompt verboten |
+| Agent-Streaming über stdio | **nicht vorhanden** | siehe oben | **BLOCKED** |
 
-**Verbindliche Regel für die Erweiterung**:
+**Verbindliche Regeln für die Erweiterung (Phase-5-Entscheid)**:
 
-- Wir rufen die CLI mit dem in `bin` deklarierten Namen auf (keine
-  Pfad-Hardcodes, kein Shell).
-- Wir versuchen zuerst `--version`. Schlägt das fehl, melden wir
-  einen verständlichen „Freebuff CLI nicht installiert"-Empty-State.
-- Wir übergeben KEINE ungeprüften Strings als Argumente.
-- Wir protokollieren stdout/stderr NUR redacted.
+- `ProcessTransport.ts` implementiert ausschließlich die verifizierte
+  Oberfläche: `--version`-Probe, `--help`-Probe und das sichtbare,
+  bestätigte Öffnen des CLIs im integrierten Terminal
+  (`freebuff --cwd <dir>`).
+- `startTask()` über die CLI wird mit einem klaren
+  `AdapterError('forbidden')` abgelehnt — es gibt keine dokumentierte
+  nicht-interaktive Schnittstelle.
+- Kein Auto-Install des CLIs durch die Erweiterung; der Nutzer
+  installiert über das dokumentierte `npm install -g freebuff`.
+- Argumente immer als `string[]`, nie Shell-Strings; stdout/stderr
+  redacted; Timeout + Kill auf jeder Probe.
 
 ## 6. `@codebuff/sdk` (optionaler Pro-Pfad)
 
